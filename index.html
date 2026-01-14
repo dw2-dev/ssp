@@ -151,13 +151,33 @@ button:hover { opacity:.9 }
 <!-- ADMIN MODAL -->
 <div id="adminModal" class="modal">
   <div class="modal-box">
-    <h3>관리자</h3>
+    <h3>👑 관리자</h3>
+
     <input id="adminPw" placeholder="관리자 비밀번호">
-    <button onclick="match()">🎯 마니또 배정</button>
-    <button onclick="resetAll()" style="background:#999">🔄 전체 리셋</button>
+
+    <button onclick="checkAdmin()">🔓 관리자 확인</button>
+
+    <!-- 관리자 전용 영역 -->
+    <div id="adminArea" style="display:none;margin-top:10px">
+      <button onclick="match()">🎯 마니또 배정</button>
+      <button onclick="loadUsers()">👥 전체 인원 보기</button>
+      <div id="adminUsers" style="
+        margin-top:15px;
+        font-size:13px;
+        max-height:250px;
+        overflow-y:auto;
+        background:#fff5f5;
+        padding:10px;
+        border-radius:8px;
+        display:none;
+      "></div>
+      <button onclick="resetAll()" style="background:#999">🔄 전체 리셋</button>
+    </div>
+
     <button onclick="closeAdmin()" style="background:#ddd;color:#444">닫기</button>
   </div>
 </div>
+
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbyt0B7ndeqVr2RSnVSINO1JIvVfddn7S3VAoMGoJRoHqbT3zWyL_OjrYCSNmaTRexTpag/exec";
@@ -222,6 +242,45 @@ function login(){
 /* 관리자 */
 function openAdmin(){ show("adminModal"); }
 function closeAdmin(){ hide("adminModal"); }
+function checkAdmin(){
+  post({
+    action: "checkAdmin",
+    gameKey: gameKey.value,
+    adminPw: adminPw.value
+  }).then(r => {
+    if (r.error) return alert("관리자 비밀번호 틀림");
+
+    document.getElementById("adminArea").style.display = "block";
+    alert("관리자 인증 완료");
+  });
+}
+
+function loadUsers(){
+  post({
+    action: "adminUsers",
+    gameKey: gameKey.value,
+    adminPw: adminPw.value
+  }).then(r => {
+    if (r.error) return alert(r.error);
+
+    let html = "<b>📋 전체 참가자</b><br><br>";
+
+    r.users.forEach(u => {
+      html += `👤 <b>${u.name}</b> `;
+      html += u.target ? "🎯<br>" : "(매칭 전)<br>";
+
+      u.gifts.forEach(g => {
+        html += `- ${g.n} (${g.p?.toLocaleString() || "?"}원)<br>`;
+      });
+
+      html += "<hr>";
+    });
+
+    const box = document.getElementById("adminUsers");
+    box.innerHTML = html;
+    box.style.display = "block";
+  });
+}
 
 function match(){
   post({
