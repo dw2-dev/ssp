@@ -41,7 +41,7 @@ input {
 }
 
 button {
-  width:96%;
+  width:100%;
   padding:12px;
   margin-top:10px;
   border-radius:10px;
@@ -93,6 +93,11 @@ button:hover { opacity:.9 }
   border-radius:15px;
   width:300px;
 }
+  
+.hr-dashed {
+  border : 0px;
+  border-top: 1px dashed #663399;
+}
 </style>
 </head>
 <body>
@@ -119,11 +124,11 @@ button:hover { opacity:.9 }
     <input id="g1" placeholder="이름">
     <input id="g1l" placeholder="링크">
     <input id="g1p" placeholder="가격">
-    <br/>
+    <hr class='hr-dashed'/>
     <input id="g2" placeholder="이름">
     <input id="g2l" placeholder="링크">
     <input id="g2p" placeholder="가격">
-    <br/>
+    <hr class='hr-dashed'/>
     <input id="g3" placeholder="이름">
     <input id="g3l" placeholder="링크">
     <input id="g3p" placeholder="가격">
@@ -163,7 +168,7 @@ const hide = id => document.getElementById(id).style.display="none";
 
 /* 단계 */
 function enter(){
-  if(!gameKey.value) return alert("GameKey 입력");
+  if(!gameKey.value) return alert("어허! 암호를 제대로 말하라!");
   hide("keySection");
   show("registerSection");
 }
