@@ -1,147 +1,137 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>우리 세 자매 마니또 🎁</title>
-    <style>
-        :root { --main-color: #ffafbd; --bg-color: #ffc3a0; }
-        body { font-family: 'Pretendard', sans-serif; background: linear-gradient(135deg, var(--main-color), var(--bg-color)); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; box-sizing: border-box; }
-        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 95%; max-width: 400px; text-align: center; }
-        h1 { color: #d4418e; margin-bottom: 1rem; }
-        input[type="text"] { width: 80%; padding: 10px; margin-bottom: 1rem; border: 2px solid #eee; border-radius: 10px; text-align: center; font-size: 1rem; }
-
-        /* 참여 선택 스타일 */
-        .participation { background: #fff5f5; padding: 15px; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid #ffafbd; }
-        .participation p { margin: 0 0 10px 0; font-weight: bold; color: #d4418e; }
-        .checkbox-group { display: flex; justify-content: space-around; margin-bottom: 10px; }
-        .checkbox-item { font-size: 0.9rem; cursor: pointer; }
-
-        .btn-group { display: grid; gap: 10px; }
-        button { padding: 12px; border: none; border-radius: 10px; background: #ff6b6b; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #ee5253; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-
-        .result-area { margin-top: 20px; padding: 15px; border-radius: 10px; background: #fff5f5; display: none; border: 1px dashed #ff6b6b; font-weight: bold; }
-        .admin-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; }
-        .admin-btn { background: #636e72; font-size: 0.8rem; }
-        #adminResult { font-size: 0.8rem; color: #636e72; margin-top: 10px; display: none; white-space: pre-line; }
-    </style>
+<meta charset="UTF-8">
+<title>마니또🎁</title>
+<style>
+body { font-family: sans-serif; background:#fff0f5; padding:20px }
+.card { background:white; padding:20px; border-radius:12px; max-width:420px; margin:auto }
+input, button { width:100%; padding:10px; margin-top:8px }
+button { background:#ff6b81; color:white; border:none; border-radius:8px }
+.result { margin-top:15px; background:#fff5f5; padding:10px }
+.admin { background:#636e72 }
+</style>
 </head>
 <body>
 
 <div class="card">
-    <h1>🎁 마니또 뽑기</h1>
+<h2>🎁마니또</h2>
 
-    <p>우리만의 <b>매칭 암호</b></p>
-    <input type="text" id="gameKey" placeholder="예: 2024" value="2024">
+<input id="gameKey" placeholder="암호를 대시오">
 
-    <div class="participation">
-        <p>올해 참여하는 사람 선택</p>
-        <div class="checkbox-group">
-            <label class="checkbox-item"><input type="checkbox" class="member-check" value="첫째" checked> 첫째</label>
-            <label class="checkbox-item"><input type="checkbox" class="member-check" value="둘째" checked> 둘째</label>
-            <label class="checkbox-item"><input type="checkbox" class="member-check" value="셋째" checked> 셋째</label>
-        </div>
-        <small style="color: #666;">* 미참여자는 체크를 해제하세요.</small>
-    </div>
+<h3>참가 등록</h3>
+<input id="r-name" placeholder="이름">
+<input id="r-pw" placeholder="비밀번호">
+    
+<hr>
+<h3>5만원 이하의 선물만 가능합니다.</h3>
+    
+<input id="g1" placeholder="선물1 이름">
+<input id="g1l" placeholder="선물1 링크">
+<input id="g2" placeholder="선물2 이름">
+<input id="g2l" placeholder="선물2 링크">
+<input id="g3" placeholder="선물3 이름">
+<input id="g3l" placeholder="선물3 링크">
+<button onclick="register()">등록</button>
 
-    <div class="btn-group">
-        <button onclick="checkMyManitto('첫째')" id="btn-첫째">나는 첫째야! 결과보기</button>
-        <button onclick="checkMyManitto('둘째')" id="btn-둘째">나는 둘째야! 결과보기</button>
-        <button onclick="checkMyManitto('셋째')" id="btn-셋째">나는 셋째야! 결과보기</button>
-    </div>
+<hr>
 
-    <div id="resultArea" class="result-area"></div>
+<h3>로그인</h3>
+<input id="l-name" placeholder="이름">
+<input id="l-pw" placeholder="비밀번호">
+<button onclick="login()">조회</button>
 
-    <div class="admin-section">
-        <button class="admin-btn" onclick="toggleAdmin()">전체 결과 보기 (관리자용)</button>
-        <div id="adminResult"></div>
-    </div>
+<div id="result" class="result"></div>
+
+<hr>
+
+<h3>관리자</h3>
+<input id="adminPw" placeholder="관리자 비밀번호">
+<button class="admin" onclick="match()">매칭</button>
+<button class="admin" onclick="resetAll()">리셋</button>
 </div>
 
 <script>
-    // 현재 체크된 참여자 목록 가져오기
-    function getActiveMembers() {
-        const checkboxes = document.querySelectorAll('.member-check:checked');
-        return Array.from(checkboxes).map(cb => cb.value);
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyt0B7ndeqVr2RSnVSINO1JIvVfddn7S3VAoMGoJRoHqbT3zWyL_OjrYCSNmaTRexTpag/exec";
+
+/* ========================= */
+function post(data) {
+  return fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  }).then(r => r.json());
+}
+
+/* ========================= */
+function register() {
+  const gifts = [
+    { n: g1.value, l: g1l.value },
+    { n: g2.value, l: g2l.value },
+    { n: g3.value, l: g3l.value }
+  ].filter(g => g.n);
+
+  post({
+    action: "register",
+    gameKey: gameKey.value,
+    name: r-name.value,
+    pw: r-pw.value,
+    gifts
+  }).then(res => {
+    if (res.error) alert("등록 실패: " + res.error);
+    else alert("등록 완료!");
+  });
+}
+
+function login() {
+  post({
+    action: "login",
+    gameKey: gameKey.value,
+    name: l-name.value,
+    pw: l-pw.value
+  }).then(res => {
+    if (res.error) return alert("로그인 실패");
+
+    let html = "<b>내가 받고 싶은 선물</b><br>";
+    res.me.gifts.forEach(g =>
+      html += `- <a href="${g.l}" target="_blank">${g.n}</a><br>`
+    );
+
+    if (res.me.target) {
+      html += `<hr><b>내 마니또:</b> ${res.me.target}<br>`;
+      res.targetGifts.forEach(g =>
+        html += `- ${g.n}<br>`
+      );
+    } else {
+      html += "<hr>아직 매칭 전";
     }
 
-    // 매칭 로직
-    function getMatching(key, activeMembers) {
-        if (activeMembers.length < 2) return null;
+    result.innerHTML = html;
+  });
+}
 
-        let matching = {};
+function match() {
+  post({
+    action: "match",
+    gameKey: gameKey.value,
+    adminPw: adminPw.value
+  }).then(res => {
+    if (res.error) alert("실패: " + res.error);
+    else alert("매칭 완료!");
+  });
+}
 
-        // 2명인 경우: 서로 매칭
-        if (activeMembers.length === 2) {
-            matching[activeMembers[0]] = activeMembers[1];
-            matching[activeMembers[1]] = activeMembers[0];
-        }
-        // 3명인 경우: 기존 로직대로 2가지 케이스 중 선택
-        else if (activeMembers.length === 3) {
-            let seed = 0;
-            for (let i = 0; i < key.length; i++) seed += key.charCodeAt(i);
+function resetAll() {
+  if (!confirm("정말 리셋할까요?")) return;
 
-            if (seed % 2 === 0) {
-                matching = { "첫째": "둘째", "둘째": "셋째", "셋째": "첫째" };
-            } else {
-                matching = { "첫째": "셋째", "둘째": "첫째", "셋째": "둘째" };
-            }
-        }
-        return matching;
-    }
-
-    function checkMyManitto(me) {
-        const key = document.getElementById('gameKey').value;
-        const activeMembers = getActiveMembers();
-
-        if (!key) { alert("매칭 암호를 입력해주세요!"); return; }
-        if (!activeMembers.includes(me)) { alert("본인이 '참여' 상태인지 확인해주세요!"); return; }
-        if (activeMembers.length < 2) { alert("최소 2명 이상 참여해야 합니다!"); return; }
-
-        const matching = getMatching(key, activeMembers);
-        const myTarget = matching[me];
-
-        const resDiv = document.getElementById('resultArea');
-        resDiv.style.display = 'block';
-        resDiv.innerHTML = `✨ ${me}의 마니또는?<br>바로... [ ${myTarget} ] 입니다!`;
-    }
-
-    function toggleAdmin() {
-        const key = document.getElementById('gameKey').value;
-        const activeMembers = getActiveMembers();
-        const adminDiv = document.getElementById('adminResult');
-
-        if (adminDiv.style.display === 'block') {
-            adminDiv.style.display = 'none';
-        } else {
-            if (activeMembers.length < 2) {
-                alert("최소 2명 이상 참여해야 결과를 볼 수 있습니다.");
-                return;
-            }
-            const matching = getMatching(key, activeMembers);
-            let resultText = "[전체 명단]\n";
-            for (let giver in matching) {
-                resultText += `${giver} -> ${matching[giver]}\n`;
-            }
-            adminDiv.style.display = 'block';
-            adminDiv.innerText = resultText;
-        }
-    }
-
-    // 체크박스 변경 시 버튼 활성화/비활성화 처리 (실수 방지)
-    document.querySelectorAll('.member-check').forEach(check => {
-        check.addEventListener('change', () => {
-            const activeMembers = getActiveMembers();
-            ["첫째", "둘째", "셋째"].forEach(m => {
-                document.getElementById('btn-' + m).disabled = !activeMembers.includes(m);
-            });
-            document.getElementById('resultArea').style.display = 'none';
-            document.getElementById('adminResult').style.display = 'none';
-        });
-    });
+  post({
+    action: "reset",
+    gameKey: gameKey.value,
+    adminPw: adminPw.value
+  }).then(res => {
+    if (res.error) alert("실패: " + res.error);
+    else alert("리셋 완료!");
+  });
+}
 </script>
-
 </body>
 </html>
