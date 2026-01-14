@@ -58,6 +58,7 @@ button:hover { opacity:.9 }
 .section { display:none }
 
 .result {
+  display: none;
   background:var(--sub);
   padding:15px;
   border-radius:10px;
@@ -96,7 +97,7 @@ button:hover { opacity:.9 }
   
 .hr-dashed {
   border : 0px;
-  border-top: 1px dashed #663399;
+  border-top: 1px dashed #444;
 }
 </style>
 </head>
@@ -214,6 +215,7 @@ function login(){
     }else h+="<hr>아직 매칭 전";
 
     result.innerHTML=h;
+    result.style.display = "block";
   });
 }
 
