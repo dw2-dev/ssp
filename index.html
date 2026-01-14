@@ -2,169 +2,225 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>마니또🎁</title>
+<title>🎁 마니또</title>
+
 <style>
-body { font-family: sans-serif; background:#fff0f5; padding:20px }
-.card { background:white; padding:20px; border-radius:12px; max-width:420px; margin:auto }
-input, button { width:100%; padding:10px; margin-top:8px }
-button { background:#ff6b81; color:white; border:none; border-radius:8px }
-.result { margin-top:15px; background:#fff5f5; padding:10px }
-.admin { background:#636e72 }
+:root {
+  --main:#ff6b81;
+  --sub:#ffd6de;
+  --bg:#fff0f5;
+  --dark:#444;
+}
+
+body {
+  background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+  font-family: Pretendard, sans-serif;
+  margin:0;
+  padding:30px;
+}
+
+.card {
+  max-width:420px;
+  margin:auto;
+  background:white;
+  border-radius:20px;
+  padding:25px;
+  box-shadow:0 15px 30px rgba(0,0,0,.15);
+  position:relative;
+}
+
+h2 { text-align:center; color:var(--main); }
+
+input, button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #eee;
+  font-size:14px;
+}
+
+button {
+  background:var(--main);
+  color:white;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover { opacity:.9 }
 
 .section { display:none }
+
+.result {
+  background:var(--sub);
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
+  font-size:14px;
+}
+
+.admin-btn {
+  position:absolute;
+  top:15px;
+  right:15px;
+  background:#636e72;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  font-size:18px;
+}
+
+/* 관리자 팝업 */
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-box {
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  width:300px;
+}
 </style>
 </head>
 <body>
 
 <div class="card">
-<h2>🎁 마니또</h2>
+  <button class="admin-btn" onclick="openAdmin()">⚙️</button>
 
-<!-- GAME KEY -->
-<div id="keySection">
-  <input id="gameKey" placeholder="암호를 대시오">
-  <button onclick="enterGame()">입장</button>
+  <h2>🎁 마니또</h2>
+
+  <!-- GAME KEY -->
+  <div id="keySection">
+    <input id="gameKey" placeholder="Game Key">
+    <button onclick="enter()">입장</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerSection" class="section">
+    <h3>참가 등록</h3>
+    <input id="rName" placeholder="이름">
+    <input id="rPw" placeholder="비밀번호">
+
+    <hr>
+    <small>5만원 이하 선물</small>
+    <input id="g1" placeholder="선물 1 이름">
+    <input id="g1l" placeholder="선물 1 링크">
+    <input id="g2" placeholder="선물 2 이름">
+    <input id="g2l" placeholder="선물 2 링크">
+    <input id="g3" placeholder="선물 3 이름">
+    <input id="g3l" placeholder="선물 3 링크">
+
+    <button onclick="register()">등록</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginSection" class="section">
+    <h3>로그인</h3>
+    <input id="lName" placeholder="이름">
+    <input id="lPw" placeholder="비밀번호">
+    <button onclick="login()">조회</button>
+  </div>
+
+  <div id="result" class="result"></div>
 </div>
 
-<!-- REGISTER -->
-<div id="registerSection" class="section">
-  <h3>참가 등록</h3>
-  <input id="r-name" placeholder="이름">
-  <input id="r-pw" placeholder="비밀번호">
-
-  <hr>
-  <h3>5만원 이하의 선물만 가능합니다.</h3>
-  <input id="g1" placeholder="선물1 이름">
-  <input id="g1l" placeholder="선물1 링크">
-  <input id="g2" placeholder="선물2 이름">
-  <input id="g2l" placeholder="선물2 링크">
-  <input id="g3" placeholder="선물3 이름">
-  <input id="g3l" placeholder="선물3 링크">
-
-  <button onclick="register()">등록</button>
-</div>
-
-<!-- LOGIN -->
-<div id="loginSection" class="section">
-  <h3>로그인</h3>
-  <input id="l-name" placeholder="이름">
-  <input id="l-pw" placeholder="비밀번호">
-  <button onclick="login()">조회</button>
-</div>
-
-<div id="result" class="result"></div>
-
-<hr>
-
-<!-- ADMIN -->
-<div id="adminSection" class="section">
-  <h3>관리자</h3>
-  <input id="adminPw" placeholder="관리자 비밀번호">
-  <button class="admin" onclick="match()">매칭</button>
-  <button class="admin" onclick="resetAll()">리셋</button>
-</div>
+<!-- ADMIN MODAL -->
+<div id="adminModal" class="modal">
+  <div class="modal-box">
+    <h3>관리자</h3>
+    <input id="adminPw" placeholder="관리자 비밀번호">
+    <button onclick="match()">🎯 마니또 배정</button>
+    <button onclick="resetAll()" style="background:#999">🔄 전체 리셋</button>
+    <button onclick="closeAdmin()" style="background:#ddd;color:#444">닫기</button>
+  </div>
 </div>
 
 <script>
-const GAS_URL = "너의_GAS_URL";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyt0B7ndeqVr2RSnVSINO1JIvVfddn7S3VAoMGoJRoHqbT3zWyL_OjrYCSNmaTRexTpag/exec";
 
-/* 공통 POST */
-function post(data) {
-  return fetch(GAS_URL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  }).then(r => r.json());
-}
+/* 공통 */
+const post = d => fetch(GAS_URL,{method:"POST",body:JSON.stringify(d)}).then(r=>r.json());
+const show = id => document.getElementById(id).style.display="block";
+const hide = id => document.getElementById(id).style.display="none";
 
-/* ===== UI 제어 ===== */
-function show(id) {
-  document.getElementById(id).style.display = "block";
-}
-function hide(id) {
-  document.getElementById(id).style.display = "none";
-}
-
-/* ===== STEP 1 ===== */
-function enterGame() {
-  const key = document.getElementById("gameKey").value;
-  if (!key) return alert("암호를 입력하세요");
-
+/* 단계 */
+function enter(){
+  if(!gameKey.value) return alert("GameKey 입력");
   hide("keySection");
   show("registerSection");
-  show("adminSection");
 }
 
-/* ===== STEP 2 ===== */
-function register() {
-  const gifts = [
-    { n: g1.value, l: g1l.value },
-    { n: g2.value, l: g2l.value },
-    { n: g3.value, l: g3l.value }
-  ].filter(g => g.n);
+function register(){
+  const gifts=[
+    {n:g1.value,l:g1l.value},
+    {n:g2.value,l:g2l.value},
+    {n:g3.value,l:g3l.value}
+  ].filter(g=>g.n);
 
   post({
-    action: "register",
-    gameKey: gameKey.value,
-    name: document.getElementById("r-name").value,
-    pw: document.getElementById("r-pw").value,
+    action:"register",
+    gameKey:gameKey.value,
+    name:rName.value,
+    pw:rPw.value,
     gifts
-  }).then(res => {
-    if (res.error) return alert(res.error);
-
-    alert("등록 완료!");
-    hide("registerSection");
-    show("loginSection");
-  });
-}
-
-/* ===== STEP 3 ===== */
-function login() {
-  post({
-    action: "login",
-    gameKey: gameKey.value,
-    name: document.getElementById("l-name").value,
-    pw: document.getElementById("l-pw").value
-  }).then(res => {
-    if (res.error) return alert(res.error);
-
-    let html = "<b>내 선물</b><br>";
-    res.me.gifts.forEach(g =>
-      html += `- <a href="${g.l}" target="_blank">${g.n}</a><br>`
-    );
-
-    if (res.me.target) {
-      html += `<hr><b>내 마니또:</b> ${res.me.target}<br>`;
-      res.targetGifts.forEach(g =>
-        html += `- ${g.n}<br>`
-      );
-    } else {
-      html += "<hr>아직 매칭 전";
+  }).then(r=>{
+    if(r.error) alert(r.error);
+    else{
+      alert("등록 완료");
+      hide("registerSection");
+      show("loginSection");
     }
-
-    document.getElementById("result").innerHTML = html;
   });
 }
 
-/* ===== ADMIN ===== */
-function match() {
+function login(){
   post({
-    action: "match",
-    gameKey: gameKey.value,
-    adminPw: adminPw.value
-  }).then(res => {
-    if (res.error) alert(res.error);
-    else alert("매칭 완료!");
+    action:"login",
+    gameKey:gameKey.value,
+    name:lName.value,
+    pw:lPw.value
+  }).then(r=>{
+    if(r.error) return alert(r.error);
+
+    let h="<b>🎁 내가 받고 싶은 선물</b><br>";
+    r.me.gifts.forEach(g=>h+=`- <a href="${g.l}" target="_blank">${g.n}</a><br>`);
+
+    if(r.me.target){
+      h+=`<hr><b>내 마니또:</b> ${r.me.target}<br>`;
+      r.targetGifts.forEach(g=>h+=`- ${g.n}<br>`);
+    }else h+="<hr>아직 매칭 전";
+
+    result.innerHTML=h;
   });
 }
 
-function resetAll() {
-  if (!confirm("정말 리셋할까요?")) return;
+/* 관리자 */
+function openAdmin(){ show("adminModal"); }
+function closeAdmin(){ hide("adminModal"); }
 
+function match(){
   post({
-    action: "reset",
-    gameKey: gameKey.value,
-    adminPw: adminPw.value
-  }).then(res => {
-    if (res.error) alert(res.error);
+    action:"match",
+    gameKey:gameKey.value,
+    adminPw:adminPw.value
+  }).then(r=>alert(r.error||"매칭 완료!"));
+}
+
+function resetAll(){
+  if(!confirm("전체 리셋?")) return;
+  post({
+    action:"reset",
+    gameKey:gameKey.value,
+    adminPw:adminPw.value
+  }).then(r=>{
+    if(r.error) alert(r.error);
     else location.reload();
   });
 }
