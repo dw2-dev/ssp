@@ -13,11 +13,32 @@ const PAGE_TYPE = {
 const GAS_URL = "https://script.google.com/macros/s/AKfycbyt0B7ndeqVr2RSnVSINO1JIvVfddn7S3VAoMGoJRoHqbT3zWyL_OjrYCSNmaTRexTpag/exec";
 
 const post = async (payload) => {
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  return res.json();
+    try {
+        const res = await fetch(GAS_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const text = await res.text(); // 원시 응답 먼저 읽기
+        console.log("🔵 RAW RESPONSE:", text);
+
+        let json;
+        try {
+            json = JSON.parse(text);
+        } catch (e) {
+            console.error("❌ JSON 파싱 실패:", e);
+            // JSON이 아니면 이렇게 돌려보냄
+            return { error: "parse_error", raw: text };
+        }
+
+        return json;
+    } catch (e) {
+        console.error("❌ fetch 에러:", e);
+        return { error: "network_error", msg: e.message };
+    }
 };
 
 const gamekey = ref('');
