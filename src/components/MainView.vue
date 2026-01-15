@@ -10,7 +10,7 @@ const PAGE_TYPE = {
   AdminView: 'adminView',
 };
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyt0B7ndeqVr2RSnVSINO1JIvVfddn7S3VAoMGoJRoHqbT3zWyL_OjrYCSNmaTRexTpag/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzWm8KNQfsflz2WHzQLWdI2aXypEQLalEuAR6wKC53Qsp10yrtDSNF54qcaUoAzWmeAxg/exec";
 
 const post = async (payload) => {
     try {
