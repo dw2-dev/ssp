@@ -84,6 +84,7 @@ const onclick_return = () => {
   showPageType.value = PAGE_TYPE.SignIn;
   id.value = '';
   pw.value = '';
+  adminPw.value = '';
 };
 
 const onclick_signUp = () => {
@@ -261,7 +262,7 @@ const onclick_match = async () => {
 const onclick_resetAll = async () => {
   if (!adminPw.value.trim()) return alert("관리자 비밀번호를 입력하세요.");
 
-  if (!confirm("정말 전체 리셋하시겠습니까? (선물/매칭 정보가 모두 삭제됩니다)")) return;
+  if (!confirm("정말 전체 리셋하시겠습니까? (정보가 모두 삭제됩니다)")) return;
 
   const res = await post({
     action: "reset",
