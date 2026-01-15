@@ -119,6 +119,9 @@ const onclick_save = async () => {
       case "limit":
         alert("참가 인원이 꽉 찼습니다.");
         break;
+      case "server_error":
+        alert("서버 내부 오류가 발생했습니다.\n" + (res.msg || ""));
+        break;
       default:
         alert("등록 중 오류가 발생했습니다. 다시 시도해 주세요.");
     }
