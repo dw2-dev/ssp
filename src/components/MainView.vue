@@ -90,8 +90,9 @@ const onclick_save = async () => {
     .filter(g => g.name || g.price || g.link);
 
   if (!filteredGifts.length) {
-    alert("최소 1개 이상 위시를 등록해 주세요.");
-    return;
+    const confirmRes = await confirm("원하는 선물이 없는가?");
+
+    if(!confirmRes) return;
   }
 
   const res = await post({
