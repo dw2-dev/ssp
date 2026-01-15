@@ -199,6 +199,39 @@ const onclick_view = async () => {
 
   showPageType.value = PAGE_TYPE.UserView;
 };
+// ... 기존 코드 아래에 추가 ...
+
+const newGift = ref({ name: '', price: '', link: '' });
+const isAdding = ref(false); // 로딩 상태 표시용
+
+const onclick_addGift = async () => {
+    if (!newGift.value.name.trim()) {
+        alert("선물 이름을 입력해주세요.");
+        return;
+    }
+
+    isAdding.value = true;
+    const res = await post({
+        action: "addGift", // Google Apps Script에 addGift 액션이 구현되어 있어야 함
+        name: myName.value,
+        gift: {
+            name: newGift.value.name.trim(),
+            price: newGift.value.price.trim(),
+            link: newGift.value.link.trim()
+        }
+    });
+    isAdding.value = false;
+
+    if (res.error) {
+        alert(res.error === 'limit' ? "위시는 최대 3개까지만 등록 가능합니다." : "추가 중 오류가 발생했습니다.");
+        return;
+    }
+
+    // 성공 시 로컬 상태 업데이트 및 입력창 초기화
+    myGifts.value.push({ ...newGift.value });
+    newGift.value = { name: '', price: '', link: '' };
+    alert("위시리스트에 추가되었습니다!");
+};
 
 const onclick_signInManager = async () => {
   if (!adminPw.value.trim()) return alert("여긴 관계자외 출입 금자라네");
@@ -363,6 +396,21 @@ const onclick_resetAll = async () => {
                                 <a v-if="g.link" :href="g.link" target="_blank" class="link-btn">상품 링크 보기</a>
                             </li>
                         </ul>
+
+                        <div v-if="myGifts.length < 3" class="add-gift-area">
+                            <div class="divider">위시 추가하기 ({{ myGifts.length }}/3)</div>
+                            <div class="mini-form">
+                                <input v-model="newGift.name" placeholder="선물 이름 (필수)" class="mini-input" />
+                                <div class="row">
+                                    <input v-model="newGift.price" placeholder="가격(예: 45,000)" class="mini-input" />
+                                    <input v-model="newGift.link" placeholder="링크(URL)" class="mini-input" />
+                                </div>
+                                <button class="btn-add" @click="onclick_addGift" :disabled="isAdding">
+                                    {{ isAdding ? '추가 중...' : '+ 추가하기' }}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-else class="limit-msg">위시리스트가 가득 찼습니다.</div>
                     </div>
 
                     <div class="wish-column card highlight">
@@ -572,6 +620,50 @@ button {
 .gift-inputs { flex: 1; }
 .gift-inputs input { padding: 8px 12px; font-size: 14px; }
 
+.add-gift-area {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    border: 1px dashed #ced4da;
+}
+
+.mini-form {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mini-input {
+    padding: 10px !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+}
+
+.mini-form .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.btn-add {
+    background: #fab1a0;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.btn-add:disabled {
+    background: #b2bec3;
+}
+
+.limit-msg {
+    margin-top: 15px;
+    font-size: 12px;
+    color: #636e72;
+    text-align: center;
+}
 /* 사용자 뷰 레이아웃 */
 .view-container {
     width: 100%;
