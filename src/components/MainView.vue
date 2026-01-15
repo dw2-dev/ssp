@@ -284,188 +284,390 @@ const onclick_resetAll = async () => {
 </script>
 
 <template>
-  <h2>🎁 마니또 🎁</h2>
+    <div class="container">
+        <header>
+            <h2>🎁 마니또 🎁</h2>
+        </header>
 
-  <!-- 0. 게임 키 입력 -->
-  <div id="gamekey" v-if="showPageType === PAGE_TYPE.GameKey">
-    <input
-      v-model="gamekey"
-      @keydown.enter="onclick_enter"
-      placeholder="암호를 대시오"
-    />
-    <button @click="onclick_enter">입장</button>
-  </div>
+        <main>
+            <section id="gamekey" v-if="showPageType === PAGE_TYPE.GameKey" class="card fade-in">
+                <h3>게임 시작</h3>
+                <input v-model="gamekey"
+                    @keydown.enter="onclick_enter"
+                    placeholder="비밀 암호를 입력하세요" />
+                <button class="btn-primary" @click="onclick_enter">입장하기</button>
+            </section>
 
-  <!-- 1. 로그인 -->
-  <div id="signIn" class="flex" v-if="showPageType === PAGE_TYPE.SignIn">
-    <h3>로그인</h3>
-    <div style="display: flex; width: 100%;">
-      <div style="display: grid; flex: 1">
-        <input
-          id="id"
-          v-model="id"
-          placeholder="이름(id)"
-        />
-        <input
-          id="pw"
-          type="password"
-          v-model="pw"
-          placeholder="비밀번호"
-        />
-      </div>
-      <div style="flex: 1">
-        <button
-          style="width: 100%; height: 100%; margin-top: 0;"
-          @click="onclick_view"
-        >
-          GO
-        </button>
-      </div>
+            <section id="signIn" v-if="showPageType === PAGE_TYPE.SignIn" class="card fade-in">
+                <h3>로그인</h3>
+                <div class="login-grid">
+                    <div class="input-group">
+                        <input v-model="id" placeholder="이름(ID)" />
+                        <input type="password"
+                            v-model="pw"
+                            placeholder="비밀번호"
+                            @keydown.enter="onclick_view"/>
+                    </div>
+                    <button class="btn-go" @click="onclick_view">GO</button>
+                </div>
+                <div class="divider">또는</div>
+                <button class="btn-secondary" @click="onclick_signUp">새로 참가 등록하기</button>
+            </section>
+
+            <section id="signUp" v-if="showPageType === PAGE_TYPE.SignUp" class="card fade-in">
+                <h3>참가 등록</h3>
+                <div class="input-section">
+                    <input v-model="signUpName" placeholder="본인 이름" />
+                    <input type="password" v-model="signUpPw" placeholder="사용할 비밀번호" />
+                </div>
+
+                <div class="wishlist-header">
+                    <h4>위시 리스트 (5만원 이하)</h4>
+                    <p>상세히 적을수록 짝꿍이 좋아해요!</p>
+                </div>
+
+                <ul class="gift-list">
+                    <li v-for="(g, idx) in gifts" :key="idx" class="gift-item">
+                        <span class="badge">{{ idx + 1 }}</span>
+                        <div class="gift-inputs">
+                            <input v-model="g.name" placeholder="선물 이름" />
+                            <input v-model="g.price" placeholder="가격(예: 45,000)" />
+                            <input v-model="g.link" placeholder="참고 링크(URL)" />
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="button-group">
+                    <button class="btn-primary" @click="onclick_save">등록 완료</button>
+                    <button class="btn-text" @click="onclick_return">취소하고 돌아가기</button>
+                </div>
+            </section>
+
+            <section id="userView" v-if="showPageType === PAGE_TYPE.UserView" class="view-container fade-in">
+                <div class="status-card">
+                    <p class="welcome">안녕하세요, <strong>{{ myName }}</strong>님!</p>
+                    <div class="mate-box">
+                        <span class="label">내 짝꿍</span>
+                        <span class="mate-name" v-if="mateName">{{ mateName }}</span>
+                        <span class="mate-name empty" v-else>두근두근... 배정 중!</span>
+                    </div>
+                </div>
+
+                <div class="wish-grid">
+                    <div class="wish-column card">
+                        <h4>나의 위시 목록</h4>
+                        <div v-if="!myGifts.length" class="empty-msg">등록된 위시가 없습니다.</div>
+                        <ul class="result-list">
+                            <li v-for="(g, idx) in myGifts" :key="idx">
+                                <p class="g-name">{{ g.name }} <span class="g-price">{{ g.price }}</span></p>
+                                <a v-if="g.link" :href="g.link" target="_blank" class="link-btn">상품 링크 보기</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="wish-column card highlight">
+                        <h4>짝꿍의 위시 목록</h4>
+                        <div v-if="!mateGifts.length" class="empty-msg">아직 비공개 상태입니다.</div>
+                        <ul class="result-list">
+                            <li v-for="(g, idx) in mateGifts" :key="idx">
+                                <p class="g-name">{{ g.name }} <span class="g-price">{{ g.price }}</span></p>
+                                <a v-if="g.link" :href="g.link" target="_blank" class="link-btn">상품 링크 보기</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="btn-secondary" @click="onclick_return">처음으로</button>
+            </section>
+
+            <section id="managerView" v-if="showPageType === PAGE_TYPE.ManagerView || showPageType === PAGE_TYPE.AdminView" class="card admin-card fade-in">
+                <h3>관리자 모드</h3>
+
+                <div v-if="showPageType === PAGE_TYPE.ManagerView" class="admin-login">
+                    <input type="password"
+                        v-model="adminPw"
+                        placeholder="관리자 암호"
+                        @keydown.enter="onclick_signInManager" />
+                    <button class="btn-primary" @click="onclick_signInManager">🔓 관리자 인증</button>
+                </div>
+
+                <div v-if="showPageType === PAGE_TYPE.AdminView" class="admin-content">
+                    <div class="admin-stats">
+                        <h4>참가자 현황</h4>
+                        <button class="btn-refresh" @click="onclick_loadUsers">🔄 새로고침</button>
+                    </div>
+                    <ul class="admin-user-list">
+                        <li v-for="(u, name) in adminUsers" :key="name">
+                            <strong>{{ name }}</strong>
+                            <span>🎁 {{ u.gifts?.length || 0 }}</span>
+                            <span class="target">🎯 {{ u.target || '미배정' }}</span>
+                        </li>
+                    </ul>
+                    <div class="admin-actions">
+                        <button class="btn-primary" @click="onclick_match">🎯 마니또 배정 시작</button>
+                        <button class="btn-danger" @click="onclick_resetAll">⚠ 전체 초기화</button>
+                    </div>
+                </div>
+                <button class="btn-text" @click="onclick_return">처음으로</button>
+            </section>
+        </main>
     </div>
-    <hr style="width: 100%;" />
-    <button style="width: 100%;" @click="onclick_signUp">회원가입</button>
-  </div>
-
-  <!-- 2. 참가 등록 -->
-  <div id="signUp" v-if="showPageType === PAGE_TYPE.SignUp">
-    <h3>참가 등록</h3>
-    <input
-      id="name"
-      v-model="signUpName"
-      placeholder="이름"
-    />
-    <input
-      id="signUpPw"
-      type="password"
-      v-model="signUpPw"
-      placeholder="비밀번호"
-    />
-
-    <hr />
-    <small>5만원 이하 선물</small>
-    <ul>
-      <li v-for="(g, idx) in gifts" :key="idx">
-        <input
-          :id="`g${idx+1}`"
-          v-model="g.name"
-          placeholder="이름"
-        />
-        <input
-          :id="`g${idx+1}p`"
-          v-model="g.price"
-          placeholder="가격"
-        />
-        <input
-          :id="`g${idx+1}l`"
-          v-model="g.link"
-          placeholder="링크"
-        />
-        <hr v-if="idx < gifts.length - 1" class="hr-dashed" />
-      </li>
-    </ul>
-
-    <button @click="onclick_save">등록</button>
-    <button @click="onclick_return">처음으로</button>
-  </div>
-
-  <!-- 3. 사용자 뷰 -->
-  <div id="userView" v-if="showPageType === PAGE_TYPE.UserView">
-    <div style="display: flex; gap: 120px;">
-      <div id="mine">
-        <h3>내 위시 목록 <span v-if="myName">({{ myName }})</span></h3>
-        <ul>
-          <li v-if="!myGifts.length">등록된 위시가 없습니다.</li>
-          <li v-for="(g, idx) in myGifts" :key="idx">
-            {{ idx + 1 }}. {{ g.name }} ({{ g.price }}) 
-            <br v-if="g.link" />
-            <a v-if="g.link" :href="g.link" target="_blank">{{ g.link }}</a>
-          </li>
-        </ul>
-      </div>
-      <div id="notMine">
-        <h3>내 짝꿍 : <span v-if="mateName">{{ mateName }}</span><span v-else>미배정</span></h3>
-        <ul>
-          <li v-if="!mateGifts.length">짝꿍 위시는 아직 비밀이거나 없어요.</li>
-          <li v-for="(g, idx) in mateGifts" :key="idx">
-            {{ idx + 1 }}. {{ g.name }} ({{ g.price }})
-            <br v-if="g.link" />
-            <a v-if="g.link" :href="g.link" target="_blank">{{ g.link }}</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div style="display: flex; justify-content: center; margin-top: 20px;">
-      <button @click="onclick_return">처음으로</button>
-    </div>
-  </div>
-
-  <!-- 4. 관리자 진입 (admin id로 로그인했을 때) -->
-  <div id="managerView" v-if="showPageType === PAGE_TYPE.ManagerView || showPageType === PAGE_TYPE.AdminView">
-    <div v-if="showPageType === PAGE_TYPE.ManagerView">
-      <input
-        id="adminPw"
-        type="password"
-        v-model="adminPw"
-        placeholder="관리자 비밀번호"
-      />
-      <button @click="onclick_signInManager">🔓 관리자 확인</button>
-      <button @click="onclick_return">처음으로</button>
-    </div>
-
-    <!-- 관리자 전용 영역 -->
-    <div v-if="showPageType === PAGE_TYPE.AdminView">
-      <div style="margin-bottom: 16px;">
-        <h3>참가자 목록</h3>
-        <button @click="onclick_loadUsers">🔄 새로고침</button>
-        <ul v-if="Object.keys(adminUsers).length">
-          <li
-            v-for="(u, name) in adminUsers"
-            :key="name"
-          >
-            {{ name }} - 위시 {{ u.gifts?.length || 0 }}개 / 타겟:
-            {{ u.target || '미배정' }}
-          </li>
-        </ul>
-        <p v-else>참가자 목록이 없습니다. 새로고침을 눌러보세요.</p>
-      </div>
-      <div>
-        <button @click="onclick_match">🎯 마니또 배정</button>
-        <button @click="onclick_loadUsers">🤫 기밀 확인</button>
-        <button @click="onclick_resetAll">🔄 전체 리셋</button>
-      </div>
-      <button style="margin-top: 16px;" @click="onclick_return">처음으로</button>
-    </div>
-  </div>
 </template>
 
 <style scoped>
+/* 기본 배경 및 레이아웃 */
+.container {
+    min-height: 100dvh;        /* height 대신 min-height */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    font-family: 'Pretendard', sans-serif;
+    color: #2d3436;
+}
+
+header h2 {
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 카드 스타일 */
+.card {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    padding: 30px;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+}
+
+h3 {
+    margin-top: 0;
+    text-align: center;
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 입력창 디자인 */
 input {
-  padding: 12px;
-  margin: 5px;
-  border-radius: 10px;
-  border: 1px solid #eee;
-  font-size: 14px;
+    width: 100%;
+    padding: 14px 18px;
+    margin: 8px 0;
+    border: 2px solid #f1f3f5;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
 }
-.hr-dashed {
-  border: 0px;
-  border-top: 2px dashed #444;
+
+input:focus {
+    outline: none;
+    border-color: #ff7675;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 118, 117, 0.15);
 }
-.flex {
-  display: flex;
-  flex-direction: column;
-  justify-items: center;
-  justify-content: center;
-  align-items: center;
-}
+
+/* 버튼 디자인 */
 button {
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: 1px solid #eee;
-  font-size: 14px;
-  background: var(--main);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s active;
+}
+
+.btn-primary {
+    background: #ff7675;
+    color: white;
+    margin-top: 10px;
+}
+
+.btn-secondary {
+    background: #636e72;
+    color: white;
+    margin-top: 10px;
+}
+
+.btn-go {
+    background: #ff7675;
+    color: white;
+    height: calc(100% - 16px);
+    margin-top: 8px;
+}
+
+.btn-text {
+    background: transparent;
+    color: #b2bec3;
+    text-decoration: underline;
+    margin-top: 15px;
+}
+
+.btn-danger {
+    background: #ee5253;
+    color: white;
+    margin-top: 10px;
+}
+
+/* 로그인 레이아웃 */
+.login-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 10px;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    color: #b2bec3;
+    font-size: 13px;
+    margin: 20px 0;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #eee;
+    margin: 0 10px;
+}
+
+/* 위시리스트 스타일 */
+.wishlist-header {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.wishlist-header h4 { margin-bottom: 5px; }
+.wishlist-header p { font-size: 12px; color: #636e72; margin-top: 0; }
+
+.gift-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+}
+
+.badge {
+    background: #fab1a0;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.gift-inputs { flex: 1; }
+.gift-inputs input { padding: 8px 12px; font-size: 14px; }
+
+/* 사용자 뷰 레이아웃 */
+.view-container {
+    width: 100%;
+    max-width: 800px;
+}
+
+.status-card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.mate-box {
+    margin-top: 10px;
+    background: #fff5f5;
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.mate-name {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #d63031;
+}
+
+.wish-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.wish-column {
+    flex: 1;
+    min-width: 300px;
+}
+
+.highlight {
+    border: 2px solid #ff7675;
+}
+
+.result-list {
+    padding: 0;
+    list-style: none;
+}
+
+.result-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.g-name { font-weight: 600; margin: 0; }
+.g-price { color: #ff7675; font-size: 0.9rem; margin-left: 5px; }
+
+.link-btn {
+    display: inline-block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #0984e3;
+    text-decoration: none;
+}
+
+/* 관리자 리스트 */
+.admin-user-list {
+    padding: 0;
+    list-style: none;
+}
+
+.admin-user-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: #f8f9fa;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* 애니메이션 */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 모바일 대응 */
+@media (max-width: 600px) {
+    .wish-column { min-width: 100%; }
+    .login-grid { grid-template-columns: 1fr; }
+    .btn-go { height: auto; }
 }
 </style>
